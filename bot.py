@@ -42,13 +42,14 @@ def build_role_keyboard(selected: set) -> InlineKeyboardMarkup:
     buttons.append([InlineKeyboardButton("✅ Confirm Selection", callback_data="confirm")])
     return InlineKeyboardMarkup(buttons)
 
-def get_role_response(idea: str, role_name: str, persona: dict) -> str:
-    message = ANTHROPIC_CLIENT.messages.create(
+async def get_role_response(idea: str, role_name: str, persona: dict) -> str:
+    loop = asyncio.get_event_loop()
+    message = await loop.run_in_executor(None, lambda: ANTHROPIC_CLIENT.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=300,
         system=persona["prompt"],
         messages=[{"role": "user", "content": f"Critique this business idea: {idea}"}]
-    )
+    ))
     return message.content[0].text
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -114,7 +115,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             persona = ROLES[role_name]
             await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
             await asyncio.sleep(1)
-            response = get_role_response(idea, role_name, persona)
+            response = await get_role_response(idea, role_name, persona)
             header = f"{persona['emoji']} *{role_name}*"
             await update.message.reply_text(f"{header}\n\n{response}", parse_mode="Markdown")
 
@@ -132,4 +133,4 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("restart", restart))
 app.add_handler(CallbackQueryHandler(handle_callback))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-app.run_polling()
+app.run_polling(drop_pending_updates=True)
