@@ -34,6 +34,7 @@ ROLES = {
 
 user_state = {}
 
+
 def build_role_keyboard(selected: set) -> InlineKeyboardMarkup:
     buttons = []
     for name, data in ROLES.items():
@@ -41,6 +42,7 @@ def build_role_keyboard(selected: set) -> InlineKeyboardMarkup:
         buttons.append([InlineKeyboardButton(label, callback_data=f"role:{name}")])
     buttons.append([InlineKeyboardButton("✅ Confirm Selection", callback_data="confirm")])
     return InlineKeyboardMarkup(buttons)
+
 
 async def get_role_response(idea: str, role_name: str, persona: dict) -> str:
     loop = asyncio.get_event_loop()
@@ -52,6 +54,7 @@ async def get_role_response(idea: str, role_name: str, persona: dict) -> str:
     ))
     return message.content[0].text
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return
@@ -61,6 +64,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=build_role_keyboard(set())
     )
 
+
 async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return
@@ -69,6 +73,7 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Restarting. Select your board members.",
         reply_markup=build_role_keyboard(set())
     )
+
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -98,10 +103,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Board confirmed:\n{selected_list}\n\nNow pitch your business idea."
         )
 
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return
+
     state = user_state.get(OWNER_ID, {})
 
     if state.get("step") == "waiting_for_idea":
@@ -131,6 +137,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     else:
         await update.message.reply_text("Use /start to begin.")
+
+
 app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("restart", restart))
