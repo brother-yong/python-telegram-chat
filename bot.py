@@ -99,6 +99,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return
     state = user_state.get(OWNER_ID, {})
@@ -115,12 +116,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             persona = ROLES[role_name]
             await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
             await asyncio.sleep(1)
-try:
-    response = await get_role_response(idea, role_name, persona)
-except Exception as e:
-    response = f"[Error: {str(e)}]"
-            header = f"{persona['emoji']} *{role_name}*"
-            await update.message.reply_text(f"{header}\n\n{response}", parse_mode="Markdown")
+            try:
+                response = await get_role_response(idea, role_name, persona)
+            except Exception as e:
+                response = f"[Error: {str(e)}]"
+            header = f"{persona['emoji']} {role_name}"
+            await update.message.reply_text(f"{header}\n\n{response}")
 
         await update.message.reply_text(
             "Want to argue your case? Reply with your response.\n\nOr use /restart to start over."
@@ -130,7 +131,6 @@ except Exception as e:
 
     else:
         await update.message.reply_text("Use /start to begin.")
-
 app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("restart", restart))
